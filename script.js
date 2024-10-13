@@ -1,3 +1,10 @@
+const botResponses = {
+    "привет": "Здравствуйте!",
+    "как дела?": "У меня всё хорошо, спасибо!",
+    "что ты можешь делать?": "Я могу отвечать на вопросы.",
+    "пока": "До свидания!"
+};
+
 document.getElementById("send-button").addEventListener("click", sendMessage);
 
 function sendMessage() {
@@ -10,7 +17,7 @@ function sendMessage() {
     displayMessage(userMessage, "user-message");
     userInput.value = "";
 
-    // Здесь можно добавить логику для обработки ответа ИИ
+    // Логика получения ответа от бота
     const botResponse = getBotResponse(userMessage);
     displayMessage(botResponse, "bot-message");
 }
@@ -25,13 +32,19 @@ function displayMessage(message, className) {
 }
 
 function getBotResponse(userMessage) {
-    // Простейшая логика ответов ИИ
-    const responses = {
-        "привет": "Здравствуйте!",
-        "как дела?": "У меня всё хорошо, спасибо!",
-        "что ты можешь делать?": "Я могу отвечать на вопросы.",
-        "пока": "До свидания!"
-    };
-
-    return responses[userMessage.toLowerCase()] || "Извините, я не понимаю.";
+    const lowerCaseMessage = userMessage.toLowerCase();
+    
+    // Проверка на существующий ответ
+    if (botResponses[lowerCaseMessage]) {
+        return botResponses[lowerCaseMessage];
+    } else {
+        // Если бот не знает ответа, предложим пользователю его ввести
+        const newResponse = prompt("Я не знаю ответа на этот вопрос. Как бы ты ответил?");
+        if (newResponse) {
+            // Сохраняем новый вопрос и ответ
+            botResponses[lowerCaseMessage] = newResponse;
+            return "Спасибо! Я запомнил это.";
+        }
+        return "Извините, я не понимаю.";
+    }
 }
