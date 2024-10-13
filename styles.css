@@ -5,15 +5,18 @@ body {
     align-items: center;
     height: 100vh;
     background-color: #f0f0f0;
+    transition: background-color 0.3s;
 }
 
 .chat-container {
     border: 1px solid #ccc;
     border-radius: 5px;
-    width: 300px;
+    width: 90%; /* Адаптация под мобильные устройства */
+    max-width: 400px; /* Максимальная ширина */
     background-color: #fff;
     display: flex;
     flex-direction: column;
+    transition: background-color 0.3s;
 }
 
 .chat-box {
@@ -34,4 +37,33 @@ body {
 .bot-message {
     text-align: left;
     color: blue;
+}
+
+/* Темная тема */
+body.dark {
+    background-color: #121212;
+}
+
+.chat-container.dark {
+    background-color: #1e1e1e;
+    border-color: #444;
+}
+
+.bot-message.dark {
+    color: #81d4fa;
+}
+
+/* Медиазапросы для мобильных устройств */
+@media (max-width: 600px) {
+    .chat-box {
+        height: 300px; /* Уменьшаем высоту для мобильных */
+    }
+
+    input[type="text"] {
+        font-size: 14px;
+    }
+
+    button {
+        font-size: 14px;
+    }
 }

@@ -6,6 +6,7 @@ const botResponses = {
 };
 
 document.getElementById("send-button").addEventListener("click", sendMessage);
+document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
 
 function sendMessage() {
     const userInput = document.getElementById("user-input");
@@ -13,11 +14,9 @@ function sendMessage() {
 
     if (userMessage.trim() === "") return;
 
-    // Отображение пользовательского сообщения
     displayMessage(userMessage, "user-message");
     userInput.value = "";
 
-    // Логика получения ответа от бота
     const botResponse = getBotResponse(userMessage);
     displayMessage(botResponse, "bot-message");
 }
@@ -28,23 +27,25 @@ function displayMessage(message, className) {
     messageElement.className = className;
     messageElement.textContent = message;
     chatBox.appendChild(messageElement);
-    chatBox.scrollTop = chatBox.scrollHeight; // Прокрутка вниз
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 function getBotResponse(userMessage) {
     const lowerCaseMessage = userMessage.toLowerCase();
     
-    // Проверка на существующий ответ
     if (botResponses[lowerCaseMessage]) {
         return botResponses[lowerCaseMessage];
     } else {
-        // Если бот не знает ответа, предложим пользователю его ввести
         const newResponse = prompt("Я не знаю ответа на этот вопрос. Как бы ты ответил?");
         if (newResponse) {
-            // Сохраняем новый вопрос и ответ
             botResponses[lowerCaseMessage] = newResponse;
             return "Спасибо! Я запомнил это.";
         }
         return "Извините, я не понимаю.";
     }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("dark");
+    document.querySelector(".chat-container").classList.toggle("dark");
 }
