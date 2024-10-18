@@ -4,15 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чат-бот</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
     <div class="chat-container" id="chat-container">
         <div class="chat-box" id="chat-box"></div>
-        <input type="text" id="user-input" placeholder="Введите ваше сообщение...">
-        <button id="send-button">Отправить</button>
-        <button id="theme-toggle">Переключить тему</button>
+        <input type="text" id="user-input" placeholder="Enter your message...">
+        <div class="wrapper">
+        <button id="send-button" class="send-button wave-btn">
+            <span class="wave-btn__text">Send</span>
+            <span class="wave-btn__waves"></span>
+        </button>
+        </div>
+        <div class="wrapper">
+            <button id="theme-toggle" class="send-button wave-btn">
+                <span class="wave-btn__text">Change theme</span>
+                <span class="wave-btn__waves"></span>
+            </button>
+            </div>
+        
     </div>
-    <script src="script.js"></script>
+    <script src="./script.js"></script>
 </body>
 </html>
