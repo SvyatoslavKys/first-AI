@@ -1,0 +1,25 @@
+{
+  "name": "first-ai-monorepo",
+  "version": "0.1.0",
+  "description": "A reusable React assistant widget and Cloudflare Worker with props-first project context, provider fallback, and structured events.",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @first-ai/demo",
+    "dev:api": "npm run dev --workspace @first-ai/api",
+    "dev:api:mock": "npm run dev:mock --workspace @first-ai/api",
+    "build:widget": "npm run build --workspace @first-ai/assistant-react",
+    "build:api": "npm run build --workspace @first-ai/api",
+    "build:demo": "npm run build --workspace @first-ai/demo",
+    "build": "npm run build:widget && npm run build:api && npm run build:demo",
+    "check": "npm run check --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:consumer": "node scripts/test-package-consumer.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

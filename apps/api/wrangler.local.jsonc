@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "first-ai-api-local",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-21",
+  "vars": {
+    "ALLOWED_ORIGINS": "http://localhost:5173",
+    "AI_ROUTES": "groq:openai/gpt-oss-120b,groq:openai/gpt-oss-20b,gemini:gemini-3.5-flash,mock:local",
+    "PROVIDER_TIMEOUT_MS": "20000"
+  }
+}

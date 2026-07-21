@@ -1,0 +1,20 @@
+{
+  "name": "@first-ai/api",
+  "version": "0.1.0",
+  "description": "A Cloudflare Worker API for First AI validation, model routing, and conversation event intake.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "dev:mock": "wrangler dev --config wrangler.local.jsonc",
+    "build": "tsc --noEmit",
+    "check": "tsc --noEmit",
+    "test": "node test/run.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250705.0",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.24.3"
+  }
+}

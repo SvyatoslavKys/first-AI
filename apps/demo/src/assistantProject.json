@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "id": "demo",
+  "name": "First AI Demo",
+  "type": "website",
+  "description": "A demonstration website for a reusable React AI assistant widget with a separate multi-provider backend.",
+  "purpose": "Show developers how an AI assistant can be installed in a React project, receive project-specific knowledge, answer visitors, and deliver structured conversation events to the host backend.",
+  "targetAudience": "Developers and small businesses that want to add an AI assistant to a website or web application.",
+  "capabilities": [
+    "Embeddable and responsive floating React chat interface for React 18 or newer",
+    "Answers based on strictly structured public project data: purpose, services, prices, FAQ, pages, contacts, and assistant rules",
+    "English, Russian, Ukrainian, and Polish interface localization with the selected locale sent to the backend",
+    "Light, dark, and automatic themes with configurable palettes, position, interface text, and closed launcher icon",
+    "Optional visitor name and current page context passed through component props",
+    "Automatic server-side fallback between configured Groq, Gemini, Workers AI, and local mock routes while preserving recent context",
+    "Versioned completed-exchange and conversation-closed events delivered to a host-owned backend endpoint"
+  ],
+  "goals": [
+    "Explain the current First AI capabilities and limitations without presenting planned functions as completed",
+    "Help a visitor understand how the component is integrated",
+    "Answer questions using only the supplied project data",
+    "Collect project requirements and contact details in the conversation when a visitor requests integration help",
+    "Explain which responsibilities belong to the React component, the First AI Worker, and the host application"
+  ],
+  "services": [
+    {
+      "id": "widget-integration",
+      "name": "AI widget integration",
+      "description": "Integration and visual configuration of the reusable assistant component in a React website.",
+      "price": {
+        "from": 500,
+        "currency": "EUR",
+        "note": "Illustrative demo price, not a commercial offer."
+      },
+      "deliveryTime": "Illustrative estimate: 3–5 working days",
+      "orderUrl": "/#integration"
+    },
+    {
+      "id": "custom-agent-backend",
+      "name": "Custom AI agent backend",
+      "description": "A project-specific backend with knowledge, model routing, conversation events, and business integrations.",
+      "price": {
+        "from": 1500,
+        "currency": "EUR",
+        "note": "Illustrative demo price; the actual scope must be estimated separately."
+      },
+      "deliveryTime": "Depends on knowledge sources and required integrations",
+      "orderUrl": "/#integration"
+    }
+  ],
+  "faq": [
+    {
+      "question": "Is this a standalone React component?",
+      "answer": "Yes. The UI is distributed as a React library and connects to a separate backend through an API URL or custom transport."
+    },
+    {
+      "question": "Are AI provider keys exposed in the browser?",
+      "answer": "No. Groq, Gemini, and Cloudflare credentials stay in the server environment and are never added to the React bundle."
+    },
+    {
+      "question": "Can different websites supply different information?",
+      "answer": "Yes. Each installation can pass its own strictly structured project object, visitor name, page context, and backend event endpoint."
+    },
+    {
+      "question": "Which languages are supported?",
+      "answer": "The built-in interface supports English, Russian, Ukrainian, and Polish. The host can override interface translations and the selected locale is sent to the model backend."
+    },
+    {
+      "question": "Does the assistant automatically learn or crawl a website?",
+      "answer": "No. Version 0.1 answers from the structured project data passed by the host. Automatic crawling, indexing, and retrieval from a large knowledge base are not implemented yet."
+    },
+    {
+      "question": "Does the assistant remember conversations after a page reload?",
+      "answer": "No. Recent history is held by the React component for the current page session and is sent with each request, but persistent server-side memory is not implemented yet."
+    },
+    {
+      "question": "Does First AI already send email, Telegram, or CRM notifications?",
+      "answer": "The component emits structured conversation events to a host backend. The included demo event endpoint only validates and acknowledges them; the host must implement real storage and notification integrations."
+    },
+    {
+      "question": "Can the assistant perform bookings, payments, or other actions?",
+      "answer": "Not in version 0.1. It can recommend approved project URLs and forward conversation events, but tool calling and autonomous business actions require a separate host backend implementation."
+    }
+  ],
+  "pages": [
+    {
+      "id": "overview",
+      "title": "Component overview",
+      "url": "/#overview",
+      "description": "A short explanation of the reusable assistant component."
+    },
+    {
+      "id": "features",
+      "title": "Component features",
+      "url": "/#features",
+      "description": "The main UI and integration capabilities demonstrated on this page."
+    },
+    {
+      "id": "integration",
+      "title": "Installation example",
+      "url": "/#integration",
+      "description": "The npm installation example for the React library."
+    }
+  ],
+  "contacts": [],
+  "assistantRules": [
+    "Clearly state that prices and delivery times in this demo are illustrative.",
+    "Do not claim that First AI is already a public paid service.",
+    "Distinguish current version 0.1 capabilities from future or host-specific integrations.",
+    "Do not claim that the assistant automatically crawls a website, has persistent memory, verifies user identity, or sends notifications by itself.",
+    "When a visitor requests human contact, ask for the preferred contact detail and explain that it remains in the conversation event until the host backend processes it.",
+    "Suggest only pages and URLs listed in the project data.",
+    "When information is missing, say that the host or a human must confirm it instead of inventing an answer."
+  ]
+}
