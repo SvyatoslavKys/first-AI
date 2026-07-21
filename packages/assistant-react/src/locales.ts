@@ -4,6 +4,7 @@ import type {
 } from "./types";
 
 export const SUPPORTED_LOCALES: AssistantLocale[] = ["en", "ru", "uk", "pl"];
+export const DEFAULT_LOCALE: AssistantLocale = "en";
 
 export const LOCALE_LABELS: Record<AssistantLocale, string> = {
   en: "EN",
@@ -91,19 +92,34 @@ export const DEFAULT_TRANSLATIONS: Record<AssistantLocale, AssistantDictionary> 
   }
 };
 
-export function detectBrowserLocale(): AssistantLocale {
-  if (typeof navigator === "undefined") return "en";
-
-  const browserLocales = navigator.languages?.length
-    ? navigator.languages
-    : [navigator.language];
-
+export function resolveBrowserLocale(
+  browserLocales: readonly string[]
+): AssistantLocale {
   for (const browserLocale of browserLocales) {
-    const language = browserLocale.toLocaleLowerCase().split("-")[0];
+    const language = browserLocale
+      .trim()
+      .toLocaleLowerCase()
+      .replace("_", "-")
+      .split("-")[0];
+
     if (SUPPORTED_LOCALES.includes(language as AssistantLocale)) {
       return language as AssistantLocale;
     }
   }
 
-  return "en";
+  return DEFAULT_LOCALE;
+}
+
+export function detectBrowserLocale(): AssistantLocale {
+  if (typeof navigator === "undefined") return DEFAULT_LOCALE;
+
+  try {
+    const browserLocales = navigator.languages?.length
+      ? navigator.languages
+      : [navigator.language];
+
+    return resolveBrowserLocale(browserLocales);
+  } catch {
+    return DEFAULT_LOCALE;
+  }
 }

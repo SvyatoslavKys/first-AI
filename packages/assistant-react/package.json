@@ -29,7 +29,8 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build && tsc -p tsconfig.build.json",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "test": "node test/run.mjs"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
+    "esbuild": "^0.28.1",
     "typescript": "^5.8.3",
     "vite": "^7.0.0"
   }

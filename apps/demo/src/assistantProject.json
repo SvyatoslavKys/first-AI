@@ -9,7 +9,7 @@
   "capabilities": [
     "Embeddable and responsive floating React chat interface for React 18 or newer",
     "Answers based on strictly structured public project data: purpose, services, prices, FAQ, pages, contacts, and assistant rules",
-    "English, Russian, Ukrainian, and Polish interface localization with the selected locale sent to the backend",
+    "English, Russian, Ukrainian, and Polish interface localization with browser-language detection, a saved visitor choice, an English fallback, and the resolved locale sent to the backend",
     "Light, dark, and automatic themes with configurable palettes, position, interface text, and closed launcher icon",
     "Optional visitor name and current page context passed through component props",
     "Automatic server-side fallback between configured Groq, Gemini, Workers AI, and local mock routes while preserving recent context",
@@ -63,7 +63,7 @@
     },
     {
       "question": "Which languages are supported?",
-      "answer": "The built-in interface supports English, Russian, Ukrainian, and Polish. The host can override interface translations and the selected locale is sent to the model backend."
+      "answer": "The built-in interface supports English, Russian, Ukrainian, and Polish. In automatic mode it restores a saved choice, checks the browser language preferences in order, and falls back to English. The host can override interface translations and the resolved locale is sent to the model backend."
     },
     {
       "question": "Does the assistant automatically learn or crawl a website?",

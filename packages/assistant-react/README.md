@@ -5,7 +5,7 @@ An embeddable React 18+ chat widget for a First AI-compatible `/chat` API. The p
 ## What the package provides
 
 - Responsive floating chat UI for desktop and mobile viewports.
-- English, Russian, Ukrainian, and Polish interface dictionaries.
+- English, Russian, Ukrainian, and Polish interface dictionaries with browser-language detection and an English fallback.
 - Strict, versioned public project context supplied through props.
 - Optional visitor name and current page context.
 - Light, dark, and automatic themes with partial color palettes and a custom launcher icon.
@@ -52,6 +52,8 @@ const project = projectJson as AssistantProjectData;
 ```
 
 The project object has a strict, versioned format. Use `@first-ai/assistant-react/project.schema.json` for editor or CI validation. It can describe the host application, its purpose, capabilities, goals, services and prices, FAQ entries, navigation pages, public contacts, and assistant rules.
+
+With `locale="auto"`, the component first restores a language selected for the current `siteId`, then checks `navigator.languages` in browser preference order, and finally falls back to English. Regional tags such as `ru-RU` are reduced to their supported base language. Host applications can also import `detectBrowserLocale`, `resolveBrowserLocale`, and `DEFAULT_LOCALE`.
 
 ## Conversation event delivery
 

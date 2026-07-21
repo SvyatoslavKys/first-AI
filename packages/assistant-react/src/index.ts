@@ -3,10 +3,12 @@ import "./styles.css";
 export { AiAssistant } from "./AiAssistant";
 export { createApiTransport } from "./api";
 export {
+  DEFAULT_LOCALE,
   DEFAULT_TRANSLATIONS,
   LOCALE_LABELS,
   SUPPORTED_LOCALES,
-  detectBrowserLocale
+  detectBrowserLocale,
+  resolveBrowserLocale
 } from "./locales";
 export { useAssistant } from "./useAssistant";
 export type {

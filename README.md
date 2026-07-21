@@ -579,9 +579,11 @@ The package also exports `useAssistant`, `createApiTransport`, locale helpers, A
 
 ## Languages
 
-English (`en`), Russian (`ru`), Ukrainian (`uk`), and Polish (`pl`) are included. With `locale="auto"`, the component uses the saved language selection or the browser language. The language selector is displayed in the widget header. Changing the language resets the current conversation so a new system instruction is not mixed with the previous history.
+English (`en`), Russian (`ru`), Ukrainian (`uk`), and Polish (`pl`) are included. With `locale="auto"`, resolution follows this order: a saved visitor selection for the current `siteId`, the first supported entry in `navigator.languages`, and English as the fallback. Regional tags such as `ru-RU`, `uk-UA`, and `pl-PL` are normalized automatically. The language selector is displayed in the widget header. Changing the language resets the current conversation so a new system instruction is not mixed with the previous history.
 
 Client-side translations can be partially overridden through the `translations` prop. The selected `locale` is always sent to the backend together with the messages.
+
+The package exports `detectBrowserLocale`, the pure `resolveBrowserLocale` helper, and `DEFAULT_LOCALE` (`en`) for host applications that manage their own locale state.
 
 ## API contract
 

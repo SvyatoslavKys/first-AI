@@ -1,0 +1,1007 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>First AI — полное техническое руководство</title>
+  <style>
+    @page { margin: 2cm; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #172033; font-size: 10.5pt; line-height: 1.45; }
+    h1 { color: #3434a8; font-size: 25pt; margin: 0 0 12pt; }
+    h2 { color: #3f3f9f; font-size: 17pt; margin-top: 25pt; border-bottom: 1px solid #d9dded; padding-bottom: 4pt; }
+    h3 { color: #474780; font-size: 13pt; margin-top: 18pt; }
+    h4 { color: #3f465e; font-size: 11pt; margin-top: 14pt; }
+    p { margin: 5pt 0 8pt; }
+    ul, ol { margin-top: 5pt; margin-bottom: 9pt; }
+    li { margin-bottom: 3pt; }
+    table { border-collapse: collapse; width: 100%; margin: 10pt 0 14pt; font-size: 9pt; }
+    th { background: #e9eaff; color: #29296d; text-align: left; }
+    th, td { border: 1px solid #cfd4e6; padding: 6pt; vertical-align: top; }
+    code { font-family: Menlo, Consolas, monospace; background: #f0f2f8; padding: 1pt 3pt; }
+    pre { font-family: Menlo, Consolas, monospace; background: #f4f5fa; border: 1px solid #d9ddec; padding: 9pt; white-space: pre-wrap; font-size: 8.5pt; line-height: 1.35; }
+    .cover { padding-top: 80pt; min-height: 600pt; }
+    .subtitle { color: #5e6780; font-size: 14pt; max-width: 520pt; }
+    .meta { margin-top: 38pt; color: #687087; }
+    .note { background: #eef3ff; border-left: 4px solid #6262df; padding: 8pt 10pt; margin: 10pt 0; }
+    .warning { background: #fff3e7; border-left: 4px solid #e58b2b; padding: 8pt 10pt; margin: 10pt 0; }
+    .danger { background: #fff0f1; border-left: 4px solid #d9535f; padding: 8pt 10pt; margin: 10pt 0; }
+    .good { background: #edf9f4; border-left: 4px solid #2e9f77; padding: 8pt 10pt; margin: 10pt 0; }
+    .small { color: #687087; font-size: 8.5pt; }
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <h1>First AI</h1>
+    <p class="subtitle">Максимально подробное руководство по архитектуре, React-компоненту, данным проекта, backend API, AI-провайдерам, событиям, безопасности, запуску и интеграции</p>
+    <div class="meta">
+      <p><strong>Версия описываемой системы:</strong> 0.1</p>
+      <p><strong>Дата актуализации:</strong> 21 июля 2026 года</p>
+      <p><strong>Язык документа:</strong> русский</p>
+      <p><strong>Назначение:</strong> дать владельцу проекта и разработчику полное понимание того, что передавать компоненту, какие запросы выполняются, где находятся данные и секреты, как формируется ответ и какие обязанности остаются у сайта, который устанавливает компонент.</p>
+    </div>
+  </section>
+
+  <div class="page-break"></div>
+  <h2>Содержание</h2>
+  <ol>
+    <li>Краткий смысл проекта</li>
+    <li>Цель и границы версии 0.1</li>
+    <li>Архитектура и зоны ответственности</li>
+    <li>Структура репозитория и назначение файлов</li>
+    <li>Полный жизненный цикл сообщения</li>
+    <li>Автоматическое определение языка</li>
+    <li>Что и где хранится</li>
+    <li>Подключение компонента к другому React-проекту</li>
+    <li>Все props компонента AiAssistant</li>
+    <li>Все вложенные типы и форматы</li>
+    <li>Полный формат project</li>
+    <li>Контракт POST /chat</li>
+    <li>Контракт POST /events</li>
+    <li>CORS, OPTIONS и коды ошибок</li>
+    <li>Формирование system prompt</li>
+    <li>Маршрутизация Groq, Gemini и Workers AI</li>
+    <li>События беседы и передача обратной связи</li>
+    <li>Темы, цвета, иконка и адаптивность</li>
+    <li>Локальная разработка</li>
+    <li>Production-развёртывание</li>
+    <li>Безопасность и публичность данных</li>
+    <li>Тестирование</li>
+    <li>Готовые сценарии интеграции</li>
+    <li>Ограничения и рекомендуемое развитие</li>
+    <li>Диагностика типичных проблем</li>
+    <li>Итоговый checklist</li>
+  </ol>
+
+  <h2>1. Краткий смысл проекта</h2>
+  <p><strong>First AI</strong> — это не одна нейросеть и не отдельный «обученный бот». Это переиспользуемая система, состоящая из визуального React-виджета и отдельного backend-сервиса. Виджет можно поставить на разные React-сайты, передать ему описание конкретного проекта, а backend превратит эти данные в контекст для AI-модели.</p>
+  <p>Один и тот же компонент может быть:</p>
+  <ul>
+    <li>консультантом по услугам и ценам;</li>
+    <li>помощником по навигации сайта;</li>
+    <li>первой линией поддержки;</li>
+    <li>помощником по выбору услуги;</li>
+    <li>сборщиком требований и контактных данных внутри диалога;</li>
+    <li>демонстрацией AI-интеграции для клиента.</li>
+  </ul>
+  <p>Поведение меняется не переписыванием внутреннего кода чата, а входными данными: <code>project</code>, <code>visitorName</code>, <code>pageContext</code>, <code>locale</code>, настройками интерфейса и адресом backend.</p>
+  <div class="note"><strong>Главная идея:</strong> React-компонент отвечает за интерфейс и отправку данных, Worker отвечает за проверку, безопасное хранение ключей и общение с AI, а сайт-владелец отвечает за реальные бизнес-действия: базу данных, email, Telegram, CRM, согласие пользователя и обработку персональных данных.</div>
+
+  <h2>2. Цель и границы версии 0.1</h2>
+  <h3>2.1. Что уже работает</h3>
+  <ul>
+    <li>Плавающий адаптивный чат для React 18 и новее.</li>
+    <li>Закрытое состояние в виде кнопки внизу справа или слева.</li>
+    <li>Английский, русский, украинский и польский интерфейсы.</li>
+    <li>Автоматическое чтение языка браузера и английский fallback.</li>
+    <li>Светлая, тёмная и автоматическая темы.</li>
+    <li>Настройка цветов, текстов, позиции и закрытой иконки.</li>
+    <li>Передача описания проекта, услуг, цен, FAQ, страниц, контактов и правил.</li>
+    <li>Передача имени посетителя и текущей страницы.</li>
+    <li>Backend на Cloudflare Workers.</li>
+    <li>Последовательное переключение Groq → Gemini → Workers AI.</li>
+    <li>Сохранение последних сообщений при переключении провайдера.</li>
+    <li>События завершённого обмена сообщениями и закрытия беседы.</li>
+    <li>Публичная демонстрация на GitHub Pages.</li>
+  </ul>
+
+  <h3>2.2. Чего пока нет</h3>
+  <ul>
+    <li>Автоматического сканирования или индексирования сайта.</li>
+    <li>Постоянной памяти после перезагрузки страницы.</li>
+    <li>Серверной базы разговоров.</li>
+    <li>Готовой отправки email, Telegram или CRM-уведомлений.</li>
+    <li>Проверки личности пользователя.</li>
+    <li>Отдельных лимитов на каждого посетителя.</li>
+    <li>Готового личного кабинета, аналитики и биллинга.</li>
+    <li>Бронирований, оплат и автономных действий.</li>
+    <li>RAG/векторной базы для большого объёма документов.</li>
+    <li>Гарантии абсолютной фактической точности ответа модели.</li>
+  </ul>
+  <div class="warning"><strong>Важно:</strong> project-данные направляют модель, но не «обучают» её навсегда. Данные повторно передаются вместе с каждым запросом и действуют только как контекст текущего вызова.</div>
+
+  <h2>3. Архитектура и зоны ответственности</h2>
+  <pre>Посетитель
+   │
+   ▼
+React-сайт / GitHub Pages
+   │  props: project, locale, visitorName, pageContext, apiUrl
+   ▼
+AiAssistant
+   │  POST {apiUrl}/chat
+   ▼
+Cloudflare Worker first-ai-api
+   ├─ CORS и проверка Origin
+   ├─ проверка JSON и ограничений
+   ├─ построение system prompt
+   ├─ маршрутизация моделей
+   │    ├─ Groq 120B
+   │    ├─ Groq 20B
+   │    ├─ Gemini
+   │    └─ Cloudflare Workers AI
+   └─ JSON-ответ компоненту
+
+AiAssistant
+   ├─ отображает ответ
+   ├─ вызывает onEvent
+   └─ POST eventDelivery.endpoint
+          └─ backend владельца сайта: БД / email / Telegram / CRM</pre>
+
+  <table>
+    <tr><th>Слой</th><th>Что делает</th><th>Чего не должен делать</th></tr>
+    <tr><td>React-компонент</td><td>Рисует UI, хранит текущую историю в памяти вкладки, формирует запрос, отображает ответ, создаёт события.</td><td>Не хранит provider keys, токены Telegram, пароль БД и другие секреты.</td></tr>
+    <tr><td>Demo-приложение</td><td>Показывает пример установки, передаёт demo project, синхронизирует язык страницы и виджета.</td><td>Не является универсальным backend и не хранит секреты.</td></tr>
+    <tr><td>First AI Worker</td><td>Проверяет запрос, строит инструкцию, выбирает провайдера, хранит server-side secrets, возвращает ответ.</td><td>В текущей версии не хранит разговоры и не отправляет реальные уведомления.</td></tr>
+    <tr><td>Backend владельца сайта</td><td>Получает события, сохраняет leads, уведомляет менеджера, применяет политику согласия и retention.</td><td>Не должен отдавать свои секреты обратно в браузер.</td></tr>
+    <tr><td>AI-провайдер</td><td>Генерирует текст из system prompt и последних сообщений.</td><td>Не знает бизнес автоматически; знает только переданный контекст.</td></tr>
+  </table>
+
+  <h2>4. Структура репозитория и назначение файлов</h2>
+  <pre>first-AI/
+├── apps/
+│   ├── demo/                       React/Vite демонстрация
+│   └── api/                        Cloudflare Worker API
+├── packages/
+│   └── assistant-react/            переиспользуемая React-библиотека
+├── docs/                           инструкции и этот документ
+├── scripts/                        проверка внешнего consumer-проекта
+├── .github/workflows/              GitHub Actions для Pages
+├── package.json                    команды и npm workspaces
+└── package-lock.json               зафиксированные версии зависимостей</pre>
+
+  <h3>4.1. apps/demo</h3>
+  <table>
+    <tr><th>Файл</th><th>Назначение</th></tr>
+    <tr><td><code>src/App.tsx</code></td><td>Главная demo-страница. Читает <code>VITE_ASSISTANT_API_URL</code>, выбирает real API или local transport, определяет язык, рисует переключатели, кнопку копирования и передаёт props в <code>AiAssistant</code>.</td></tr>
+    <tr><td><code>src/assistantProject.json</code></td><td>Публичные знания demo-проекта: описание, цель, возможности, услуги, примерные цены, FAQ, страницы и правила.</td></tr>
+    <tr><td><code>src/demoLocales.ts</code></td><td>Переводы не самого чата, а окружающей demo-страницы.</td></tr>
+    <tr><td><code>src/demoTransport.ts</code></td><td>Локальная заглушка. Используется только если отсутствует <code>VITE_ASSISTANT_API_URL</code>. Не обращается к AI.</td></tr>
+    <tr><td><code>src/main.tsx</code></td><td>Создаёт React root и подключает App.</td></tr>
+    <tr><td><code>src/styles.css</code></td><td>Стили демонстрационной страницы. Не являются стилями библиотеки виджета.</td></tr>
+    <tr><td><code>.env.example</code></td><td>Пример публичной переменной с URL backend. Provider keys здесь запрещены.</td></tr>
+    <tr><td><code>vite.config.ts</code></td><td>Vite + React, локальный порт 5173.</td></tr>
+    <tr><td><code>package.json</code></td><td>Команды dev/build/check demo-приложения.</td></tr>
+  </table>
+
+  <h3>4.2. packages/assistant-react</h3>
+  <table>
+    <tr><th>Файл</th><th>Назначение</th></tr>
+    <tr><td><code>src/AiAssistant.tsx</code></td><td>UI виджета, переключатели языка/темы, открытие/закрытие, input, accessibility, применение props и цветов.</td></tr>
+    <tr><td><code>src/useAssistant.ts</code></td><td>Состояние сообщений, sessionId, отправка запроса, AbortController, создание и доставка событий.</td></tr>
+    <tr><td><code>src/api.ts</code></td><td>Стандартный HTTP transport: POST на <code>{apiUrl}/chat</code> и извлечение <code>message.content</code>.</td></tr>
+    <tr><td><code>src/types.ts</code></td><td>Все публичные TypeScript-типы: props, project, запросы, ответы, темы, цвета, события.</td></tr>
+    <tr><td><code>src/locales.ts</code></td><td>Словари EN/RU/UK/PL, labels, определение языка браузера и английский fallback.</td></tr>
+    <tr><td><code>src/styles.css</code></td><td>Изолированные классы с префиксом <code>fai-</code>, desktop/mobile layout и CSS variables.</td></tr>
+    <tr><td><code>src/index.ts</code></td><td>Публичные exports библиотеки.</td></tr>
+    <tr><td><code>project.schema.json</code></td><td>JSON Schema формата project для редактора и CI.</td></tr>
+    <tr><td><code>vite.config.ts</code></td><td>Собирает ES-модуль библиотеки; React остаётся peer dependency и не дублируется в bundle.</td></tr>
+    <tr><td><code>test/locales.test.ts</code></td><td>Проверяет языковые теги, приоритет browser languages и fallback на английский.</td></tr>
+  </table>
+
+  <h3>4.3. apps/api</h3>
+  <table>
+    <tr><th>Файл</th><th>Назначение</th></tr>
+    <tr><td><code>src/index.ts</code></td><td>HTTP entrypoint Worker: CORS, маршруты <code>/chat</code>, <code>/events</code>, коды ответов.</td></tr>
+    <tr><td><code>src/security.ts</code></td><td>Runtime-валидация запросов, project, URL, цен, событий и лимитов.</td></tr>
+    <tr><td><code>src/sites.ts</code></td><td>Построение system prompt из project и fallback prompt для известного siteId без project.</td></tr>
+    <tr><td><code>src/router.ts</code></td><td>Разбор <code>AI_ROUTES</code>, timeout, cooldown, fallback и attempts metadata.</td></tr>
+    <tr><td><code>src/providers/groq.ts</code></td><td>Адаптер Groq OpenAI-compatible chat completions.</td></tr>
+    <tr><td><code>src/providers/gemini.ts</code></td><td>Адаптер Google Gemini generateContent.</td></tr>
+    <tr><td><code>src/providers/workersAi.ts</code></td><td>Адаптер Cloudflare Workers AI binding.</td></tr>
+    <tr><td><code>src/providers/mock.ts</code></td><td>Локальная предсказуемая заглушка без внешнего AI.</td></tr>
+    <tr><td><code>wrangler.jsonc</code></td><td>Production name, origins, model routes, timeout, AI binding, observability.</td></tr>
+    <tr><td><code>wrangler.local.jsonc</code></td><td>Локальная конфигурация с mock fallback.</td></tr>
+    <tr><td><code>.dev.vars</code></td><td>Локальные секреты. Игнорируется Git. Не должен публиковаться.</td></tr>
+    <tr><td><code>test/router.test.ts</code></td><td>Тесты fallback, cooldown, validation, events и корректного вызова Workers AI binding.</td></tr>
+  </table>
+
+  <h2>5. Полный жизненный цикл сообщения</h2>
+  <ol>
+    <li>Браузер загружает demo-страницу и React bundle.</li>
+    <li>App получает public URL Worker из <code>VITE_ASSISTANT_API_URL</code>.</li>
+    <li>App определяет язык и передаёт его в <code>AiAssistant</code>.</li>
+    <li>Компонент создаёт <code>sessionId</code> через <code>crypto.randomUUID()</code>, а при отсутствии — через время и случайное число.</li>
+    <li>В состоянии появляется локальное приветственное сообщение. Оно ещё не получено от AI.</li>
+    <li>Посетитель открывает виджет. Компонент ставит focus в input.</li>
+    <li>Посетитель вводит до 500 символов и отправляет форму.</li>
+    <li><code>useAssistant</code> обрезает пробелы, добавляет user message и берёт последние <code>maxHistory</code> сообщений.</li>
+    <li>Если передан <code>transport</code>, используется он. Иначе из <code>apiUrl</code> создаётся стандартный transport.</li>
+    <li>Стандартный transport выполняет <code>POST {apiUrl}/chat</code> с JSON.</li>
+    <li>Worker проверяет Origin, метод, path, общий размер body и JSON.</li>
+    <li>Worker проверяет siteId, sessionId, locale, messages, project, visitorName и page.</li>
+    <li>Worker строит system prompt. В него входят project, язык, имя и страница.</li>
+    <li>Router читает <code>AI_ROUTES</code> слева направо.</li>
+    <li>Провайдер без секрета пропускается. Провайдер в cooldown пропускается временно.</li>
+    <li>Первый успешный провайдер возвращает текст.</li>
+    <li>Worker возвращает <code>message</code> и диагностический <code>meta</code>.</li>
+    <li>Стандартный transport берёт только <code>message.content</code> и отдаёт его hook.</li>
+    <li>Hook добавляет assistant message в UI.</li>
+    <li>Создаётся событие <code>assistant.exchange.completed</code>.</li>
+    <li>Событие независимо передаётся в <code>onEvent</code> и, если настроено, в <code>eventDelivery.endpoint</code>.</li>
+  </ol>
+  <div class="note">Если посетитель отправляет следующее сообщение, project и последние сообщения отправляются снова. Backend не достаёт историю из БД: источником истории сейчас является состояние React-компонента.</div>
+
+  <h2>6. Автоматическое определение языка</h2>
+  <h3>6.1. Поддерживаемые значения</h3>
+  <table>
+    <tr><th>Код</th><th>Язык</th><th>Примеры browser tags</th></tr>
+    <tr><td><code>en</code></td><td>English</td><td>en, en-US, en-GB</td></tr>
+    <tr><td><code>ru</code></td><td>Русский</td><td>ru, ru-RU</td></tr>
+    <tr><td><code>uk</code></td><td>Українська</td><td>uk, uk-UA, uk_UA</td></tr>
+    <tr><td><code>pl</code></td><td>Polski</td><td>pl, pl-PL</td></tr>
+  </table>
+
+  <h3>6.2. Порядок выбора в demo</h3>
+  <ol>
+    <li>Читается <code>localStorage["first-ai-locale:demo"]</code>.</li>
+    <li>Если значение является одним из четырёх поддерживаемых — оно побеждает. Это сохраняет ручной выбор посетителя.</li>
+    <li>Если сохранённого значения нет, вызывается <code>detectBrowserLocale()</code>.</li>
+    <li>Функция читает <code>navigator.languages</code>. Это упорядоченный браузером список предпочтений.</li>
+    <li>Каждый tag приводится к нижнему регистру, <code>_</code> заменяется на <code>-</code>, региональная часть отбрасывается.</li>
+    <li>Выбирается первый поддерживаемый язык.</li>
+    <li>Если браузерного API нет, чтение вызвало ошибку, список пуст или языки не поддерживаются — используется <code>en</code>.</li>
+  </ol>
+  <div class="good"><strong>Fallback гарантирован:</strong> английский хранится в <code>DEFAULT_LOCALE</code> и возвращается для неизвестных языков, например de-DE, fr-FR или es-ES.</div>
+  <p>Это не HTTP-запрос и не запрос разрешения пользователя. <code>navigator.languages</code> — стандартное значение, уже предоставленное браузером. Геолокация, IP и cookies для определения языка не используются.</p>
+
+  <h3>6.3. Поведение при ручном переключении</h3>
+  <ul>
+    <li>Верхний переключатель demo меняет язык страницы.</li>
+    <li>Selector внутри виджета вызывает <code>onLocaleChange</code>, поэтому demo и чат синхронизируются.</li>
+    <li>Выбранный код записывается в localStorage для текущего <code>siteId</code>.</li>
+    <li>При изменении языка input очищается, текущий запрос отменяется, создаётся новый sessionId и история сбрасывается к приветствию.</li>
+    <li>Сброс нужен, чтобы system instruction нового языка не смешивалась с предыдущей беседой.</li>
+  </ul>
+
+  <h3>6.4. Использование в другом проекте</h3>
+  <pre>&lt;AiAssistant
+  siteId={project.id}
+  project={project}
+  apiUrl="https://your-worker.workers.dev"
+  locale="auto"
+/&gt;</pre>
+  <p>Если язык полностью контролируется host-приложением, передайте конкретный код и при необходимости скройте selector:</p>
+  <pre>&lt;AiAssistant
+  locale={appLocale}
+  showLanguageSelector={false}
+  onLocaleChange={setAppLocale}
+  ...
+/&gt;</pre>
+
+  <h2>7. Что и где хранится</h2>
+  <table>
+    <tr><th>Данные</th><th>Где находятся</th><th>Срок жизни / публичность</th></tr>
+    <tr><td>Текущие messages</td><td>React state в памяти вкладки</td><td>Исчезают после reload; видимы пользователю и отправляются Worker.</td></tr>
+    <tr><td>sessionId</td><td><code>useRef</code> в компоненте</td><td>Новый после mount или смены языка; публичный технический ID, не auth token.</td></tr>
+    <tr><td>Выбранный язык</td><td>localStorage <code>first-ai-locale:{siteId}</code></td><td>Сохраняется в браузере этого посетителя.</td></tr>
+    <tr><td>Выбранная тема</td><td>localStorage <code>first-ai-theme:{siteId}</code></td><td>Сохраняется в браузере этого посетителя.</td></tr>
+    <tr><td>project</td><td>Frontend bundle/JS и каждый chat request</td><td>Полностью публичный. Секреты запрещены.</td></tr>
+    <tr><td>visitorName</td><td>Props, request, event</td><td>Публичен для браузера; может стать персональными данными.</td></tr>
+    <tr><td>page context</td><td>Собирается из window/document и отправляется</td><td>Содержит URL, path, title текущей страницы.</td></tr>
+    <tr><td>Groq/Gemini keys</td><td>Cloudflare secrets или локальный <code>.dev.vars</code></td><td>Никогда не попадают в React bundle и ответы.</td></tr>
+    <tr><td>Cloudflare AI binding</td><td>Worker environment</td><td>Server-side binding, не prop.</td></tr>
+    <tr><td>События demo /events</td><td>Только runtime log metadata</td><td>Текущий endpoint не сохраняет transcript в БД.</td></tr>
+  </table>
+  <div class="danger"><strong>Нельзя передавать в props/project:</strong> provider API keys, Telegram bot token, email password, database connection string, JWT signing secret, приватные внутренние заметки, персональные данные других людей.</div>
+
+  <h2>8. Подключение компонента к другому React-проекту</h2>
+  <h3>8.1. Установка</h3>
+  <pre>npm install @first-ai/assistant-react</pre>
+  <p>Пока пакет не опубликован в принадлежащем владельцу npm scope, используется локальный tarball:</p>
+  <pre># В репозитории First AI
+npm run build:widget
+npm pack --workspace @first-ai/assistant-react
+
+# В другом проекте
+npm install /absolute/path/to/first-ai-assistant-react-0.1.0.tgz</pre>
+
+  <h3>8.2. Минимальное подключение</h3>
+  <pre>import { AiAssistant } from "@first-ai/assistant-react";
+import "@first-ai/assistant-react/styles.css";
+import projectJson from "./assistantProject.json";
+import type { AssistantProjectData } from "@first-ai/assistant-react";
+
+const project = projectJson as AssistantProjectData;
+
+export function App() {
+  return (
+    &lt;AiAssistant
+      siteId={project.id}
+      project={project}
+      apiUrl="https://your-worker.workers.dev"
+      locale="auto"
+    /&gt;
+  );
+}</pre>
+  <p>Обязательно подключить CSS. В <code>apiUrl</code> указывается base URL без <code>/chat</code>: библиотека добавит путь сама.</p>
+
+  <h3>8.3. Что должен подготовить новый проект</h3>
+  <ol>
+    <li>Публичный <code>assistantProject.json</code>.</li>
+    <li>Уникальный <code>siteId</code>, совпадающий с <code>project.id</code>.</li>
+    <li>Worker URL или собственный <code>transport</code>.</li>
+    <li>Разрешённый Origin в конфигурации Worker.</li>
+    <li>При необходимости — backend endpoint для events.</li>
+    <li>Решение, откуда брать <code>visitorName</code>: auth state сайта или не передавать.</li>
+    <li>Политику согласия, хранения и обработки беседы.</li>
+  </ol>
+
+  <h2>9. Все props компонента AiAssistant</h2>
+  <p>Ниже описан каждый prop из <code>AiAssistantProps</code>. «Передаётся в chat request» означает, что значение уходит на backend. «Только UI» означает, что Worker это значение не получает.</p>
+  <table>
+    <tr><th>Prop</th><th>Тип / default</th><th>Подробное поведение</th></tr>
+    <tr><td><code>siteId</code></td><td><code>string</code>, обязательный</td><td>Публичный ID установки. Уходит в chat request и events. Допустимый backend-формат: <code>^[a-z0-9-]{1,64}$</code>. При наличии project обязан совпадать с <code>project.id</code>. Также входит в localStorage keys языка и темы. Это не user ID и не секрет.</td></tr>
+    <tr><td><code>apiUrl</code></td><td><code>string?</code></td><td>Base URL backend без <code>/chat</code>. Последний slash удаляется. Если указан <code>https://api.example.com/</code>, запрос уйдёт на <code>https://api.example.com/chat</code>. Не содержит provider key.</td></tr>
+    <tr><td><code>transport</code></td><td><code>AssistantTransport?</code></td><td>Собственная async-функция. Имеет приоритет над <code>apiUrl</code>. Получает готовый AssistantRequest и AbortSignal, возвращает строку ответа. Полезна для proxy, тестов, другого API-контракта или local demo. Если нет ни transport, ни apiUrl, отправка завершится ошибкой.</td></tr>
+    <tr><td><code>project</code></td><td><code>AssistantProjectData?</code></td><td>Публичная база знаний установки. Уходит с каждым запросом. Для универсальной работы на разных сайтах рекомендуется передавать всегда. Если отсутствует, Worker сможет ответить только для siteId, заранее записанного в <code>sites.ts</code>.</td></tr>
+    <tr><td><code>visitorName</code></td><td><code>string?</code></td><td>Имя, которое уже знает host-сайт. Обрезаются внешние пробелы. Показывается вместо «Вы», используется для двухбуквенного avatar, отправляется в request, prompt и events. Backend принимает до 100 символов. Не подтверждает личность.</td></tr>
+    <tr><td><code>pageContext</code></td><td><code>Partial&lt;AssistantPageContext&gt;?</code></td><td>Переопределяет автоматически найденные <code>url</code>, <code>path</code>, <code>title</code>. Для каждого отсутствующего поля берётся значение браузера. Page отправляется только если в итоге есть все три поля.</td></tr>
+    <tr><td><code>eventDelivery</code></td><td><code>AssistantEventDelivery?</code></td><td>Настраивает отправку событий на backend. Сейчас поддерживается объект <code>{ type: "backend", endpoint, events? }</code>. Не влияет на chat response. Ошибка events endpoint не удаляет уже показанный AI-ответ.</td></tr>
+    <tr><td><code>title</code></td><td><code>string?</code></td><td>Только UI. Заголовок в header чата. Если отсутствует, берётся из словаря активного языка.</td></tr>
+    <tr><td><code>eyebrow</code></td><td><code>string?</code></td><td>Только UI. Маленькая строка над title, например «Онлайн-помощник».</td></tr>
+    <tr><td><code>statusText</code></td><td><code>string?</code></td><td>Только UI. Текст рядом с зелёной status-точкой. Не является реальной проверкой состояния provider; это статическая надпись.</td></tr>
+    <tr><td><code>welcomeMessage</code></td><td><code>string?</code></td><td>Только начальное сообщение интерфейса. Создаётся локально, не является AI-ответом. При смене языка или reset история возвращается к этому сообщению.</td></tr>
+    <tr><td><code>placeholder</code></td><td><code>string?</code></td><td>Только UI. Placeholder input.</td></tr>
+    <tr><td><code>locale</code></td><td><code>"en" | "ru" | "uk" | "pl" | "auto"</code>; default <code>auto</code></td><td>Определяет UI-язык и язык backend-инструкции. При auto: сохранённый выбор → navigator.languages → en. Конкретный код делает prop контролирующим внешнее значение. Смена языка сбрасывает session и messages.</td></tr>
+    <tr><td><code>translations</code></td><td>частичный словарь</td><td>Позволяет заменить отдельные тексты для отдельных языков. Merge выполняется поверх встроенного словаря активного языка; неуказанные ключи остаются стандартными.</td></tr>
+    <tr><td><code>theme</code></td><td><code>"light" | "dark" | "auto"</code>; default <code>auto</code></td><td>Определяет исходную/resolved тему. При auto: сохранённый выбор → <code>prefers-color-scheme</code>. Компонент слушает изменение системной темы, пока пользователь не выбрал тему вручную.</td></tr>
+    <tr><td><code>colors</code></td><td><code>AssistantColorScheme?</code></td><td>Частичные light/dark palettes. Применяется palette resolved theme. Можно заменить один token или все. Значение <code>colors.primary</code> имеет приоритет над shorthand <code>primaryColor</code>.</td></tr>
+    <tr><td><code>position</code></td><td><code>bottom-right | bottom-left</code>; default <code>bottom-right</code></td><td>Выбирает нижний угол. CSS учитывает safe-area inset мобильных устройств.</td></tr>
+    <tr><td><code>primaryColor</code></td><td><code>string?</code></td><td>Короткий способ изменить <code>--fai-primary</code>. Разрешена CSS-строка цвета. Для полноценной настройки лучше colors.</td></tr>
+    <tr><td><code>launcherIcon</code></td><td><code>ReactNode?</code></td><td>Содержимое кнопки в закрытом состоянии: SVG, img, компонент или текст. При открытии библиотека сама показывает CloseIcon. Декоративному img рекомендуется <code>alt=""</code>.</td></tr>
+    <tr><td><code>showLanguageSelector</code></td><td><code>boolean</code>; default <code>true</code></td><td>Показывает/скрывает selector в header. Скрытие не отключает locale prop.</td></tr>
+    <tr><td><code>showThemeToggle</code></td><td><code>boolean</code>; default <code>true</code></td><td>Показывает/скрывает кнопку theme. Скрытие не отключает theme prop.</td></tr>
+    <tr><td><code>defaultOpen</code></td><td><code>boolean</code>; default <code>false</code></td><td>Начальное состояние. После mount состояние становится внутренним и не отслеживает последующие изменения prop как controlled value.</td></tr>
+    <tr><td><code>className</code></td><td><code>string</code>; default пустая строка</td><td>Добавляется к root <code>.fai-widget</code>. Позволяет host CSS выбрать конкретный instance.</td></tr>
+    <tr><td><code>style</code></td><td><code>CSSProperties?</code></td><td>Inline style root. Можно передать стандартные CSS-свойства. Некоторые theme variables затем могут быть переопределены primaryColor/colors.</td></tr>
+    <tr><td><code>maxHistory</code></td><td><code>number?</code>; hook default <code>16</code></td><td>Сколько последних сообщений компонент включает в request и event. Backend всё равно принимает максимум последние 16. Слишком маленькое значение уменьшит контекст; отрицательное/нецелое значение компонент сейчас отдельно не валидирует, поэтому передавать следует положительное целое.</td></tr>
+    <tr><td><code>onLocaleChange</code></td><td><code>(locale) =&gt; void</code></td><td>Вызывается только при выборе языка внутри widget selector. Позволяет синхронизировать язык host-страницы.</td></tr>
+    <tr><td><code>onThemeChange</code></td><td><code>(light | dark) =&gt; void</code></td><td>Вызывается после ручного toggle и возвращает resolved theme, не <code>auto</code>.</td></tr>
+    <tr><td><code>onOpenChange</code></td><td><code>(isOpen) =&gt; void</code></td><td>Вызывается при открытии/закрытии. Подходит для аналитики UI. Не вызывается как backend event автоматически.</td></tr>
+    <tr><td><code>onEvent</code></td><td><code>(event) =&gt; void | Promise&lt;void&gt;</code></td><td>Получает структурированные события в host JavaScript. Выполняется независимо от eventDelivery. Reject/throw попадает в onEventDeliveryError.</td></tr>
+    <tr><td><code>onEventDeliveryError</code></td><td><code>(error, event) =&gt; void</code></td><td>Диагностика ошибок onEvent или POST события. Не вызывается для обычной chat-ошибки.</td></tr>
+    <tr><td><code>onError</code></td><td><code>(error) =&gt; void</code></td><td>Вызывается при ошибке получения AI-ответа, кроме AbortError. UI одновременно показывает локализованное errorMessage.</td></tr>
+  </table>
+
+  <h2>10. Все вложенные типы и форматы</h2>
+  <h3>10.1. AssistantTransport</h3>
+  <pre>type AssistantTransport = (
+  request: AssistantRequest,
+  signal?: AbortSignal
+) =&gt; Promise&lt;string&gt;;</pre>
+  <p>Transport обязан вернуть только готовый текст assistant. Если host API возвращает JSON, custom transport должен сам разобрать JSON. Signal следует передать в fetch, чтобы смена языка/unmount могли отменить запрос.</p>
+
+  <h3>10.2. AssistantPageContext</h3>
+  <table>
+    <tr><th>Поле</th><th>Смысл</th><th>Backend limit</th></tr>
+    <tr><td><code>url</code></td><td>Полный URL. Только http/https или безопасный относительный URL.</td><td>500</td></tr>
+    <tr><td><code>path</code></td><td>pathname + search + hash.</td><td>1000</td></tr>
+    <tr><td><code>title</code></td><td>document.title или override.</td><td>300</td></tr>
+  </table>
+
+  <h3>10.3. AssistantDictionary</h3>
+  <table>
+    <tr><th>Ключ</th><th>Где используется</th></tr>
+    <tr><td>title</td><td>Заголовок header.</td></tr>
+    <tr><td>eyebrow</td><td>Надпись над title.</td></tr>
+    <tr><td>statusText</td><td>Статус рядом с точкой.</td></tr>
+    <tr><td>welcomeMessage</td><td>Локальное первое сообщение.</td></tr>
+    <tr><td>placeholder</td><td>Input placeholder.</td></tr>
+    <tr><td>languageLabel</td><td>Accessible label selector.</td></tr>
+    <tr><td>enableLightTheme / enableDarkTheme</td><td>Accessible label кнопки темы.</td></tr>
+    <tr><td>closeChat / openChat</td><td>Accessible labels controls.</td></tr>
+    <tr><td>sendMessage / inputLabel</td><td>Accessible labels формы.</td></tr>
+    <tr><td>typingLabel</td><td>Label typing indicator.</td></tr>
+    <tr><td>inputHint</td><td>Подсказка под input.</td></tr>
+    <tr><td>assistantLabel / userLabel</td><td>Подписи авторов.</td></tr>
+    <tr><td>errorMessage</td><td>Локализованная UI-ошибка.</td></tr>
+  </table>
+
+  <h3>10.4. Color tokens</h3>
+  <table>
+    <tr><th>Token</th><th>Что меняет</th></tr>
+    <tr><td>primary</td><td>Акцент, кнопка Send, focus и связанные оттенки.</td></tr>
+    <tr><td>surface</td><td>Полупрозрачная поверхность panel/messages.</td></tr>
+    <tr><td>surfaceSolid</td><td>Header/footer и непрозрачные поверхности.</td></tr>
+    <tr><td>surfaceSoft</td><td>Inputs, controls, фоновые участки.</td></tr>
+    <tr><td>text / textMuted</td><td>Основной и вторичный текст.</td></tr>
+    <tr><td>border</td><td>Границы controls и разделители.</td></tr>
+    <tr><td>assistantBubble / assistantText</td><td>Bubble и текст assistant.</td></tr>
+    <tr><td>userBubble / userText</td><td>Bubble и текст пользователя.</td></tr>
+    <tr><td>launcherBackground / launcherText</td><td>Фон и содержимое закрытой кнопки; background может быть gradient.</td></tr>
+    <tr><td>status</td><td>Зелёная status-точка.</td></tr>
+    <tr><td>notification</td><td>Notification dot до первого открытия.</td></tr>
+  </table>
+
+  <h2>11. Полный формат project</h2>
+  <h3>11.1. Верхний уровень</h3>
+  <table>
+    <tr><th>Поле</th><th>Обяз.</th><th>Ограничение</th><th>Как влияет</th></tr>
+    <tr><td>schemaVersion</td><td>Да</td><td>Только 1</td><td>Позволяет версионировать контракт.</td></tr>
+    <tr><td>id</td><td>Да</td><td>1–64, a-z, 0-9, hyphen</td><td>Должен совпасть с siteId.</td></tr>
+    <tr><td>name</td><td>Да</td><td>1–120</td><td>Название в system prompt.</td></tr>
+    <tr><td>type</td><td>Да</td><td>website, web-app, mobile-app, service, other</td><td>Категория проекта.</td></tr>
+    <tr><td>description</td><td>Да</td><td>1–2000</td><td>Что это за проект/бизнес.</td></tr>
+    <tr><td>purpose</td><td>Да</td><td>1–1000</td><td>Зачем проект существует и что должен дать посетителю.</td></tr>
+    <tr><td>targetAudience</td><td>Нет</td><td>1–500</td><td>Для кого предназначен продукт.</td></tr>
+    <tr><td>capabilities</td><td>Да</td><td>до 20 × 300</td><td>Что продукт или приложение умеет.</td></tr>
+    <tr><td>goals</td><td>Да</td><td>до 20 × 300</td><td>Чего assistant помогает добиться.</td></tr>
+    <tr><td>services</td><td>Да</td><td>до 20</td><td>Каталог услуг/предложений.</td></tr>
+    <tr><td>faq</td><td>Да</td><td>до 50</td><td>Утверждённые ответы.</td></tr>
+    <tr><td>pages</td><td>Да</td><td>до 50</td><td>URL, которые assistant может советовать.</td></tr>
+    <tr><td>contacts</td><td>Да</td><td>до 20</td><td>Публичные контакты.</td></tr>
+    <tr><td>assistantRules</td><td>Нет</td><td>до 20 × 300</td><td>Специальные ограничения поведения.</td></tr>
+  </table>
+  <p>Сериализованный project ограничен Worker примерно 15 000 символами JSON. JSON Schema запрещает дополнительные properties; runtime parser реконструирует разрешённые поля, поэтому неизвестные поля не используются в итоговом project-контексте.</p>
+
+  <h3>11.2. Service</h3>
+  <table>
+    <tr><th>Поле</th><th>Обяз.</th><th>Описание</th></tr>
+    <tr><td>id</td><td>Да</td><td>1–64, pattern как project id.</td></tr>
+    <tr><td>name</td><td>Да</td><td>Название до 120.</td></tr>
+    <tr><td>description</td><td>Да</td><td>Описание до 1200.</td></tr>
+    <tr><td>price</td><td>Нет</td><td>Объект цены.</td></tr>
+    <tr><td>deliveryTime</td><td>Нет</td><td>Срок/пояснение до 200.</td></tr>
+    <tr><td>orderUrl</td><td>Нет</td><td>http(s) или относительный URL, начинающийся с одного slash.</td></tr>
+  </table>
+
+  <h3>11.3. Price</h3>
+  <table>
+    <tr><th>Поле</th><th>Смысл</th></tr>
+    <tr><td>amount</td><td>Точная неотрицательная цена.</td></tr>
+    <tr><td>from</td><td>Минимальная цена.</td></tr>
+    <tr><td>to</td><td>Верхняя граница.</td></tr>
+    <tr><td>currency</td><td>Обязательна при наличии price; до 12 символов, например EUR, PLN, USD.</td></tr>
+    <tr><td>unit</td><td>Единица: per month, per page и т. п.; до 80.</td></tr>
+    <tr><td>note</td><td>Пояснение до 300: НДС, примерная цена, условия расчёта.</td></tr>
+  </table>
+  <p>Технически parser не требует, чтобы было хотя бы одно из amount/from/to. Но для понятного ответа следует всегда указывать реальную структуру цены или полностью не передавать price.</p>
+
+  <h3>11.4. FAQ, Page, Contact</h3>
+  <ul>
+    <li><strong>FAQ:</strong> question 1–500, answer 1–1500.</li>
+    <li><strong>Page:</strong> id, title до 160, safe url, optional description до 500.</li>
+    <li><strong>Contact:</strong> type = email/phone/telegram/url/other, value до 300, optional label до 100.</li>
+  </ul>
+  <div class="warning">Контакт в project — публичный контакт компании. Контакт, который посетитель написал в беседе, находится в messages/event и требует корректной обработки персональных данных.</div>
+
+  <h3>11.5. Полный пример</h3>
+  <pre>{
+  "schemaVersion": 1,
+  "id": "acme-studio",
+  "name": "Acme Studio",
+  "type": "website",
+  "description": "Студия разработки сайтов для малого бизнеса.",
+  "purpose": "Объяснить услуги и помочь выбрать подходящий вариант.",
+  "targetAudience": "Малый бизнес",
+  "capabilities": ["Landing pages", "Company websites"],
+  "goals": ["Ответить на вопросы", "Помочь перейти к заказу"],
+  "services": [{
+    "id": "landing-page",
+    "name": "Landing page",
+    "description": "Дизайн и адаптивная разработка.",
+    "price": { "from": 800, "currency": "EUR", "note": "Финальная оценка после брифа." },
+    "deliveryTime": "7–10 рабочих дней",
+    "orderUrl": "/contact?service=landing-page"
+  }],
+  "faq": [{
+    "question": "Включён ли хостинг?",
+    "answer": "Хостинг выбирается и оплачивается отдельно."
+  }],
+  "pages": [{
+    "id": "contact",
+    "title": "Контакты",
+    "url": "/contact",
+    "description": "Форма запроса."
+  }],
+  "contacts": [{ "type": "email", "value": "sales@example.com", "label": "Sales" }],
+  "assistantRules": ["Не придумывай цены и сроки."]
+}</pre>
+
+  <h2>12. Контракт POST /chat</h2>
+  <h3>12.1. Endpoint</h3>
+  <pre>POST https://first-ai-api.svyat-first-ai.workers.dev/chat
+Content-Type: application/json
+Origin: https://разрешённый-сайт.example</pre>
+
+  <h3>12.2. Поля AssistantRequest</h3>
+  <table>
+    <tr><th>Поле</th><th>Обяз.</th><th>Правило</th></tr>
+    <tr><td>siteId</td><td>Да</td><td>Pattern project ID, до 64.</td></tr>
+    <tr><td>sessionId</td><td>Да</td><td>Непустой до 128. Не auth token.</td></tr>
+    <tr><td>locale</td><td>Да</td><td>Только en/ru/uk/pl. Значение auto в API не отправляется: браузер заранее разрешает его в конкретный код.</td></tr>
+    <tr><td>messages</td><td>Да</td><td>Непустой массив. Последнее сообщение обязано иметь role=user. Worker берёт последние 16. Каждый content до 1200.</td></tr>
+    <tr><td>project</td><td>Нет технически</td><td>Если есть, проходит строгую нормализацию и id должен совпасть с siteId.</td></tr>
+    <tr><td>visitorName</td><td>Нет</td><td>До 100.</td></tr>
+    <tr><td>page</td><td>Нет</td><td>Если есть, все url/path/title обязательны.</td></tr>
+  </table>
+  <p>Общий raw request body ограничен 50 000 символами. UI input ограничен 500 символами, то есть стандартный интерфейс не достигает server limit 1200 для одного сообщения.</p>
+
+  <h3>12.3. Пример request</h3>
+  <pre>{
+  "siteId": "acme-studio",
+  "sessionId": "4d9f...",
+  "locale": "ru",
+  "visitorName": "Иван",
+  "page": {
+    "url": "https://example.com/services",
+    "path": "/services",
+    "title": "Услуги"
+  },
+  "project": { "...": "полный AssistantProjectData" },
+  "messages": [
+    { "role": "assistant", "content": "Здравствуйте!" },
+    { "role": "user", "content": "Сколько стоит landing page?" }
+  ]
+}</pre>
+
+  <h3>12.4. Успешный response 200</h3>
+  <pre>{
+  "message": {
+    "role": "assistant",
+    "content": "Разработка landing page начинается от 800 EUR..."
+  },
+  "meta": {
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "status": "success"
+      }
+    ]
+  }
+}</pre>
+  <p>Стандартный <code>createApiTransport</code> возвращает UI только <code>message.content</code>. <code>meta</code> остаётся доступным при прямом API-вызове или custom transport и нужен для observability.</p>
+
+  <h3>12.5. Attempts metadata</h3>
+  <table>
+    <tr><th>Status</th><th>Значение</th></tr>
+    <tr><td>success</td><td>Маршрут вернул непустой текст.</td></tr>
+    <tr><td>skipped</td><td>Провайдер не настроен, например отсутствует secret.</td></tr>
+    <tr><td>failed</td><td>Вызов был выполнен, но завершился ошибкой.</td></tr>
+    <tr><td>cooldown</td><td>Маршрут временно не вызывается после недавней retryable-ошибки.</td></tr>
+  </table>
+  <p>Error codes: <code>authentication</code>, <code>configuration</code>, <code>empty_response</code>, <code>invalid_request</code>, <code>rate_limit</code>, <code>timeout</code>, <code>unavailable</code>, <code>unknown</code>.</p>
+
+  <h2>13. Контракт POST /events</h2>
+  <h3>13.1. Endpoint demo Worker</h3>
+  <pre>POST https://first-ai-api.svyat-first-ai.workers.dev/events</pre>
+  <p>Текущий endpoint только валидирует event, пишет metadata в Worker logs и отвечает 202. Он не сохраняет сообщения и не отправляет уведомления.</p>
+
+  <h3>13.2. Общие поля event</h3>
+  <table>
+    <tr><th>Поле</th><th>Назначение</th></tr>
+    <tr><td>schemaVersion</td><td>Всегда 1.</td></tr>
+    <tr><td>id</td><td>Уникальный event ID, до 128.</td></tr>
+    <tr><td>type</td><td>exchange.completed или conversation.closed.</td></tr>
+    <tr><td>occurredAt</td><td>ISO timestamp, должен разбираться Date.parse.</td></tr>
+    <tr><td>siteId / projectId</td><td>Публичные идентификаторы установки и project.</td></tr>
+    <tr><td>sessionId</td><td>Связывает events одной page-session.</td></tr>
+    <tr><td>locale</td><td>Конкретный EN/RU/UK/PL.</td></tr>
+    <tr><td>visitorName</td><td>Опционально.</td></tr>
+    <tr><td>page</td><td>Опционально.</td></tr>
+    <tr><td>messages</td><td>Последние сообщения.</td></tr>
+  </table>
+
+  <h3>13.3. assistant.exchange.completed</h3>
+  <p>Создаётся только после успешного AI-ответа. Дополнительно содержит <code>exchange.user</code> и <code>exchange.assistant</code> — именно текущую пару.</p>
+
+  <h3>13.4. assistant.conversation.closed</h3>
+  <p>Создаётся при закрытии чата, если есть хотя бы одно user message, нет активной загрузки и это состояние беседы ещё не было отмечено как закрытое. Повторное открытие и закрытие без новых сообщений не создаёт дубль. После нового ответа последнее message ID меняется, поэтому следующее закрытие может создать новый event.</p>
+
+  <h3>13.5. Ответ</h3>
+  <pre>HTTP 202 Accepted
+{
+  "accepted": true,
+  "eventId": "тот-же-event-id"
+}</pre>
+
+  <h2>14. CORS, OPTIONS и коды ошибок</h2>
+  <h3>14.1. Allowed origins</h3>
+  <p>Production Worker принимает browser requests только от точных origins из <code>ALLOWED_ORIGINS</code>:</p>
+  <pre>http://localhost:5173,https://svyatoslavkys.github.io</pre>
+  <p>Origin не содержит path. Для страницы <code>https://svyatoslavkys.github.io/first-AI/</code> origin равен <code>https://svyatoslavkys.github.io</code>.</p>
+
+  <h3>14.2. OPTIONS</h3>
+  <p>Разрешённый preflight получает 204 и headers:</p>
+  <ul>
+    <li>Access-Control-Allow-Origin: конкретный origin;</li>
+    <li>Access-Control-Allow-Methods: POST, OPTIONS;</li>
+    <li>Access-Control-Allow-Headers: Content-Type;</li>
+    <li>Access-Control-Max-Age: 86400;</li>
+    <li>Vary: Origin.</li>
+  </ul>
+
+  <h3>14.3. HTTP statuses</h3>
+  <table>
+    <tr><th>Status</th><th>Когда</th><th>Body</th></tr>
+    <tr><td>200</td><td>Успешный chat.</td><td>message + meta.</td></tr>
+    <tr><td>202</td><td>Валидный event принят.</td><td>accepted + eventId.</td></tr>
+    <tr><td>204</td><td>Успешный OPTIONS.</td><td>Пустой.</td></tr>
+    <tr><td>400</td><td>Invalid JSON, invalid request или invalid event.</td><td>Без внутренних деталей.</td></tr>
+    <tr><td>403</td><td>Origin запрещён или site неизвестен без project.</td><td>Origin is not allowed / Unknown site.</td></tr>
+    <tr><td>404</td><td>Другой path или неподдерживаемый метод.</td><td>Not found.</td></tr>
+    <tr><td>413</td><td>Body больше 50 000 символов.</td><td>Request is too large.</td></tr>
+    <tr><td>502</td><td>Все AI routes недоступны.</td><td>Assistant is temporarily unavailable.</td></tr>
+  </table>
+  <p>Все JSON responses получают <code>Cache-Control: no-store</code> и <code>X-Content-Type-Options: nosniff</code>.</p>
+
+  <h2>15. Формирование system prompt</h2>
+  <h3>15.1. С project</h3>
+  <p>Worker создаёт инструкцию, которая:</p>
+  <ul>
+    <li>называет проект;</li>
+    <li>задаёт язык ответа;</li>
+    <li>разрешает использовать только PROJECT_DATA как источник бизнес-фактов;</li>
+    <li>запрещает придумывать цены, скидки, сроки, URLs и возможности;</li>
+    <li>отдельно применяет assistantRules;</li>
+    <li>разрешает советовать только URL из project;</li>
+    <li>просит собирать контакт, но не утверждать, что уведомление доставлено;</li>
+    <li>включает runtime context с visitorName и page;</li>
+    <li>включает сериализованный project JSON.</li>
+  </ul>
+  <p>Одинаковая system instruction передаётся каждому provider route. Поэтому при fallback новая модель видит те же факты и последние messages.</p>
+
+  <h3>15.2. Без project</h3>
+  <p>Worker ищет <code>siteId</code> в <code>apps/api/src/sites.ts</code>. Сейчас встроен только <code>demo</code> с четырьмя короткими language prompts. Для универсальной интеграции project следует передавать.</p>
+
+  <h2>16. Маршрутизация Groq, Gemini и Workers AI</h2>
+  <h3>16.1. Production order</h3>
+  <pre>1. groq:openai/gpt-oss-120b
+2. groq:openai/gpt-oss-20b
+3. gemini:gemini-3.5-flash
+4. workers-ai:@cf/zai-org/glm-4.7-flash</pre>
+
+  <h3>16.2. Правила fallback</h3>
+  <ol>
+    <li>Если adapter не настроен, route = skipped.</li>
+    <li>Если route имеет cooldown, он не вызывается.</li>
+    <li>Каждый вызов ограничен <code>PROVIDER_TIMEOUT_MS</code>, production = 20000 ms.</li>
+    <li>При успехе cooldown удаляется и возвращается результат.</li>
+    <li>При 429 используется Retry-After или 60 секунд cooldown.</li>
+    <li>Другие retryable-ошибки получают 10 секунд cooldown.</li>
+    <li>Authentication/configuration не останавливают цепочку: router пробует следующий route.</li>
+    <li>Неретрайная invalid request ошибка не маскируется fallback.</li>
+    <li>Если успеха нет — AllProvidersUnavailableError и внешний 502.</li>
+  </ol>
+  <p>Cooldown хранится в памяти конкретного Worker isolate, поэтому это оптимизация, а не глобальная долговечная таблица состояния.</p>
+
+  <h3>16.3. Groq adapter</h3>
+  <ul>
+    <li>Secret: <code>GROQ_API_KEY</code>.</li>
+    <li>Endpoint: <code>https://api.groq.com/openai/v1/chat/completions</code>.</li>
+    <li>Authorization Bearer добавляется только Worker.</li>
+    <li>temperature = 0.3, max_completion_tokens = 500.</li>
+  </ul>
+
+  <h3>16.4. Gemini adapter</h3>
+  <ul>
+    <li>Secret: <code>GEMINI_API_KEY</code>.</li>
+    <li>Endpoint: Google Generative Language v1beta generateContent.</li>
+    <li>Ключ передаётся server-side header <code>x-goog-api-key</code>.</li>
+    <li>Assistant messages преобразуются в role=model.</li>
+    <li>temperature = 0.3, maxOutputTokens = 500.</li>
+  </ul>
+
+  <h3>16.5. Workers AI adapter</h3>
+  <ul>
+    <li>Не требует Groq/Gemini key.</li>
+    <li>Использует Cloudflare binding <code>env.AI</code>.</li>
+    <li>Вызов <code>AI.run(model, payload)</code> выполняется внутри Worker.</li>
+    <li>temperature = 0.3, max_tokens = 500.</li>
+  </ul>
+
+  <h3>16.6. Лимиты</h3>
+  <p>Лимит provider относится к аккаунту/проекту, чьи credentials установлены в Worker. Два посетителя не получают отдельные «1000 запросов»; они расходуют общий пул. <code>siteId</code> не создаёт отдельный billing account и не разделяет quota.</p>
+
+  <h2>17. События беседы и передача обратной связи</h2>
+  <p>AI-ответ возвращается прямо в компонент через <code>/chat</code>. Отдельно component может сообщить владельцу сайта, о чём шёл разговор. Для этого используются events.</p>
+  <h3>17.1. Рекомендуемая production-схема</h3>
+  <pre>AiAssistant
+   │ POST /api/assistant-events
+   ▼
+Backend владельца сайта
+   ├─ проверка schema
+   ├─ consent / privacy
+   ├─ сохранение в БД
+   ├─ выделение контакта/lead
+   ├─ email менеджеру
+   ├─ Telegram Bot API
+   └─ CRM webhook</pre>
+  <p>В <code>eventDelivery.endpoint</code> можно передать относительный URL, например <code>/api/assistant-events</code>, чтобы запрос ушёл на тот же домен host-сайта. Секреты email/Telegram/CRM остаются на этом backend.</p>
+
+  <h3>17.2. Events filter</h3>
+  <pre>eventDelivery={{
+  type: "backend",
+  endpoint: "/api/assistant-events",
+  events: ["assistant.conversation.closed"]
+}}</pre>
+  <p>Если <code>events</code> отсутствует, отправляются оба типа. Если массив указан, остальные события отфильтровываются.</p>
+
+  <h3>17.3. Транспорт events</h3>
+  <ul>
+    <li>method POST;</li>
+    <li>Content-Type application/json;</li>
+    <li><code>keepalive: true</code>, чтобы повысить шанс доставки при уходе со страницы;</li>
+    <li>delivery выполняется асинхронно и не блокирует UI;</li>
+    <li>неуспешный HTTP status превращается в Error и передаётся callback.</li>
+  </ul>
+
+  <h2>18. Темы, цвета, иконка и адаптивность</h2>
+  <h3>18.1. Theme auto</h3>
+  <ol>
+    <li>Читается <code>first-ai-theme:{siteId}</code>.</li>
+    <li>Если пользователь ранее выбрал light/dark, это значение используется.</li>
+    <li>Иначе читается <code>matchMedia("(prefers-color-scheme: dark)")</code>.</li>
+    <li>До ручного выбора component слушает system theme changes.</li>
+  </ol>
+
+  <h3>18.2. Layout</h3>
+  <ul>
+    <li>Root fixed, z-index 1000.</li>
+    <li>Desktop panel: до 390 px ширины и 620 px высоты.</li>
+    <li>Позиция учитывает safe-area.</li>
+    <li>Breakpoints: 520 px, 360 px и landscape ниже 540 px высоты.</li>
+    <li>Поддерживается <code>prefers-reduced-motion</code>.</li>
+    <li>Все классы библиотеки имеют prefix <code>fai-</code>.</li>
+  </ul>
+
+  <h3>18.3. Accessibility</h3>
+  <ul>
+    <li>Уникальные IDs через React <code>useId</code>.</li>
+    <li><code>aria-expanded</code>, <code>aria-controls</code>, <code>aria-hidden</code>.</li>
+    <li>Скрытая panel получает <code>inert</code>.</li>
+    <li>Escape закрывает чат и возвращает focus к launcher.</li>
+    <li>Messages используют <code>role=log</code> и <code>aria-live=polite</code>.</li>
+    <li>Inputs и icon buttons имеют локализованные labels.</li>
+  </ul>
+
+  <h2>19. Локальная разработка</h2>
+  <h3>19.1. Требования</h3>
+  <ul><li>Node.js 20+</li><li>npm 10+</li></ul>
+  <pre>npm install</pre>
+
+  <h3>19.2. Только UI с local demo transport</h3>
+  <pre>npm run dev</pre>
+  <p>Если <code>VITE_ASSISTANT_API_URL</code> не задан, AI не вызывается. Ответы берутся из <code>demoTransport.ts</code>.</p>
+
+  <h3>19.3. Локальный Worker с mock fallback</h3>
+  <pre># Terminal 1
+npm run dev:api:mock
+
+# Terminal 2
+cp apps/demo/.env.example apps/demo/.env.local
+npm run dev</pre>
+  <p><code>.env.local</code> содержит только <code>VITE_ASSISTANT_API_URL=http://localhost:8787</code>.</p>
+
+  <h3>19.4. Локальные provider keys</h3>
+  <pre># apps/api/.dev.vars
+GROQ_API_KEY=gsk_...
+GEMINI_API_KEY=...</pre>
+  <p><code>.dev.vars</code> игнорируется Git. После изменения перезапускается local Worker.</p>
+
+  <h2>20. Production-развёртывание</h2>
+  <h3>20.1. Worker</h3>
+  <pre>npx wrangler login
+npm run secret:groq
+npm run secret:gemini
+npm run deploy:api</pre>
+  <p>Current Worker base URL:</p>
+  <pre>https://first-ai-api.svyat-first-ai.workers.dev</pre>
+  <p>Secrets вводятся в prompt Wrangler. Они не записываются в <code>wrangler.jsonc</code> и не должны передаваться в чат, issue, commit или screenshot.</p>
+
+  <h3>20.2. GitHub Pages</h3>
+  <p>Workflow выполняется при push в main:</p>
+  <ol>
+    <li>checkout;</li>
+    <li>Node 22;</li>
+    <li>npm ci;</li>
+    <li>TypeScript check;</li>
+    <li>tests;</li>
+    <li>library build;</li>
+    <li>demo build с base <code>/first-AI/</code>;</li>
+    <li>upload artifact;</li>
+    <li>deploy Pages.</li>
+  </ol>
+  <pre>https://svyatoslavkys.github.io/first-AI/</pre>
+  <p>Workflow по умолчанию встраивает public Worker URL. GitHub Pages не содержит provider key.</p>
+
+  <h3>20.3. Собственный Worker для пользователя библиотеки</h3>
+  <p>Пользователь с собственным quota должен развернуть свой Worker, положить secrets туда, разрешить Origin своего сайта и передать компоненту только свой <code>apiUrl</code>. Передавать key prop-ом нельзя: любой prop виден в browser DevTools.</p>
+
+  <h2>21. Безопасность и публичность данных</h2>
+  <h3>21.1. Уже реализовано</h3>
+  <ul>
+    <li>Exact Origin allowlist.</li>
+    <li>Строгие paths и methods.</li>
+    <li>Ограничение request body.</li>
+    <li>Проверка IDs, locale, roles, message content, URLs и project arrays.</li>
+    <li>Project нормализуется и только разрешённые fields попадают в prompt.</li>
+    <li>Provider errors наружу заменяются общими сообщениями.</li>
+    <li>No-store responses.</li>
+    <li>Secrets только server-side.</li>
+  </ul>
+
+  <h3>21.2. Что необходимо перед публичным коммерческим запуском</h3>
+  <ul>
+    <li>Rate limiting на Worker.</li>
+    <li>Turnstile или другой anti-abuse механизм.</li>
+    <li>Ограничения по site/customer и отдельные quotas.</li>
+    <li>Authentication между host backend и event endpoint.</li>
+    <li>Consent перед сохранением разговоров.</li>
+    <li>Retention policy и удаление персональных данных.</li>
+    <li>Monitoring стоимости и provider quota.</li>
+    <li>Разделение tenants и project data на server side при SaaS-модели.</li>
+    <li>Server-side schema validation events в backend владельца.</li>
+  </ul>
+  <div class="warning">CORS защищает обычные browser calls, но не мешает злоумышленнику отправить прямой scripted HTTP request с поддельными данными. Поэтому CORS не заменяет rate limit и authentication.</div>
+
+  <h2>22. Тестирование</h2>
+  <table>
+    <tr><th>Команда</th><th>Что проверяет</th></tr>
+    <tr><td><code>npm run check</code></td><td>TypeScript всех workspaces.</td></tr>
+    <tr><td><code>npm test</code></td><td>Locale resolution и API/router/security/events tests.</td></tr>
+    <tr><td><code>npm run build</code></td><td>Library, API type build и demo.</td></tr>
+    <tr><td><code>npm run build:pages</code></td><td>Production Pages artifact с правильным base path.</td></tr>
+    <tr><td><code>npm run test:consumer</code></td><td>Создаёт npm tarball, ставит его во внешний временный проект, проверяет types, CSS, schema и exports.</td></tr>
+  </table>
+  <p>Router tests проверяют порядок, fallback после 429, cooldown, передачу того же контекста следующей модели, mock при отсутствии ключей, Workers AI method binding, project validation и event format.</p>
+  <p>Locale tests проверяют все языки, региональные tags, browser priority, underscore notation и английский fallback.</p>
+
+  <h2>23. Готовые сценарии интеграции</h2>
+  <h3>23.1. Анонимный посетитель</h3>
+  <pre>&lt;AiAssistant
+  siteId={project.id}
+  project={project}
+  apiUrl={API_URL}
+  locale="auto"
+/&gt;</pre>
+  <p><code>visitorName</code> не передаётся. UI показывает локализованное «Вы».</p>
+
+  <h3>23.2. Авторизованный пользователь</h3>
+  <pre>&lt;AiAssistant
+  siteId={project.id}
+  project={project}
+  apiUrl={API_URL}
+  visitorName={currentUser?.displayName}
+  locale="auto"
+/&gt;</pre>
+  <p>Host сам решает, можно ли передавать имя. Компонент не проверяет auth session.</p>
+
+  <h3>23.3. Отправка закрытой беседы менеджеру</h3>
+  <pre>&lt;AiAssistant
+  siteId={project.id}
+  project={project}
+  apiUrl={API_URL}
+  eventDelivery={{
+    type: "backend",
+    endpoint: "/api/assistant-events",
+    events: ["assistant.conversation.closed"]
+  }}
+/&gt;</pre>
+  <p>Endpoint host backend получает transcript и уже сам вызывает email/Telegram/CRM.</p>
+
+  <h3>23.4. Собственный API contract</h3>
+  <pre>const transport: AssistantTransport = async (request, signal) =&gt; {
+  const response = await fetch("/api/my-assistant", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ assistantRequest: request }),
+    signal
+  });
+  const data = await response.json();
+  return data.answer;
+};
+
+&lt;AiAssistant siteId={project.id} project={project} transport={transport} /&gt;</pre>
+
+  <h3>23.5. Полная настройка UI</h3>
+  <pre>&lt;AiAssistant
+  siteId={project.id}
+  project={project}
+  apiUrl={API_URL}
+  locale="auto"
+  theme="auto"
+  position="bottom-left"
+  title="Консультант"
+  eyebrow="Онлайн"
+  statusText="Готов помочь"
+  welcomeMessage="Здравствуйте! Что вас интересует?"
+  placeholder="Введите вопрос..."
+  colors={{
+    light: { primary: "#0f766e" },
+    dark: { primary: "#5eead4", userBubble: "#0f766e" }
+  }}
+  launcherIcon={&lt;YourLogo /&gt;}
+  onError={console.error}
+/&gt;</pre>
+
+  <h2>24. Ограничения и рекомендуемое развитие</h2>
+  <h3>24.1. Ближайшие технические улучшения</h3>
+  <ol>
+    <li>Rate limiting + Turnstile.</li>
+    <li>Настоящий event receiver с DB и notifications.</li>
+    <li>Server-side project registry: frontend передаёт projectId, а private/large knowledge хранится backend.</li>
+    <li>Persistent conversations и resume token.</li>
+    <li>Tenant/customer keys и отдельные quotas.</li>
+    <li>RAG для документов и страниц.</li>
+    <li>Структурированный lead extraction.</li>
+    <li>Admin dashboard, usage и costs.</li>
+    <li>Tool calling для bookings/CRM при строгих разрешениях.</li>
+    <li>Версионирование API и schema migrations.</li>
+  </ol>
+
+  <h3>24.2. Когда props-first project уже недостаточно</h3>
+  <p>Если данных больше 15 KB, они приватные, часто меняются или принадлежат многим tenants, project не следует целиком отправлять из браузера. Тогда frontend передаёт стабильный project/customer ID, Worker аутентифицирует установку и получает знания из KV/D1/R2/Vectorize или внешней БД.</p>
+
+  <h2>25. Диагностика типичных проблем</h2>
+  <table>
+    <tr><th>Симптом</th><th>Вероятная причина</th><th>Что проверить</th></tr>
+    <tr><td>Local demo response</td><td>Нет VITE_ASSISTANT_API_URL.</td><td><code>apps/demo/.env.local</code>, перезапуск Vite.</td></tr>
+    <tr><td>403 Origin is not allowed</td><td>Origin не в ALLOWED_ORIGINS.</td><td>Точный protocol/domain/port; path не добавлять.</td></tr>
+    <tr><td>400 Invalid request</td><td>Неверный project, ID, locale, messages или page.</td><td>siteId = project.id, schemaVersion 1, required arrays, safe URLs.</td></tr>
+    <tr><td>502 temporarily unavailable</td><td>Все routes failed/skipped/cooldown.</td><td>Secrets, provider quota, model IDs, Worker logs.</td></tr>
+    <tr><td>Groq skipped</td><td>Production secret отсутствует.</td><td><code>npm run secret:groq</code>, затем deploy.</td></tr>
+    <tr><td>Язык всегда английский</td><td>Browser languages не поддержаны или сохранён en.</td><td>localStorage key, navigator.languages, locale prop.</td></tr>
+    <tr><td>Язык изменился, история пропала</td><td>Ожидаемое поведение.</td><td>Смена locale намеренно создаёт новую session.</td></tr>
+    <tr><td>Events не приходят</td><td>Нет endpoint, filter исключил type, CORS/auth backend.</td><td>Network tab и onEventDeliveryError.</td></tr>
+    <tr><td>После reload нет истории</td><td>Persistent storage не реализован.</td><td>Нужно добавить backend DB и восстановление.</td></tr>
+    <tr><td>AI придумал факт</td><td>LLM не даёт абсолютной гарантии.</td><td>Уточнить project/rules, ограничить use case, добавить verification/RAG.</td></tr>
+    <tr><td>GitHub Pages показывает старую версию</td><td>Cache или workflow ещё выполняется.</td><td>Actions, hard refresh Cmd+Shift+R, asset hash.</td></tr>
+  </table>
+
+  <h2>26. Итоговый checklist для новой установки</h2>
+  <ol>
+    <li>React 18+ установлен.</li>
+    <li>Пакет и styles.css импортированы.</li>
+    <li>Создан public assistantProject.json.</li>
+    <li>В project нет секретов.</li>
+    <li>siteId точно равен project.id.</li>
+    <li>Выбран <code>locale="auto"</code> или конкретный язык.</li>
+    <li>Worker развернут или передан custom transport.</li>
+    <li>В apiUrl нет <code>/chat</code>.</li>
+    <li>Origin сайта добавлен в ALLOWED_ORIGINS.</li>
+    <li>Provider keys находятся только в Worker secrets.</li>
+    <li>Проверены успешный response и <code>meta.provider</code>.</li>
+    <li>Настроен host event endpoint, если нужны уведомления.</li>
+    <li>Backend event endpoint валидирует JSON.</li>
+    <li>Определены consent и retention rules.</li>
+    <li>Проверены desktop/mobile, языки, темы и icon.</li>
+    <li>Выполнены check, test, build и consumer test.</li>
+    <li>Перед коммерческим запуском добавлены rate limit и anti-abuse.</li>
+  </ol>
+
+  <h2>27. Короткая модель понимания</h2>
+  <div class="good">
+    <p><strong>Что передаём компоненту:</strong> публичное описание проекта, имя текущего пользователя при наличии, язык, UI-настройки, public backend URL и event endpoint.</p>
+    <p><strong>Что компонент отправляет:</strong> site/session IDs, конкретный locale, последние сообщения, project, optional visitor/page.</p>
+    <p><strong>Что делает Worker:</strong> валидирует, создаёт prompt, добавляет server secret, вызывает модели по очереди и возвращает ответ.</p>
+    <p><strong>Что возвращается:</strong> assistant message и metadata о provider attempts.</p>
+    <p><strong>Что получает владелец сайта:</strong> structured events, если настроил свой endpoint.</p>
+    <p><strong>Что нигде нельзя показывать:</strong> AI keys, bot tokens, DB/email credentials.</p>
+  </div>
+
+  <p class="small">Документ подготовлен по фактическим исходникам First AI v0.1: React package, demo app, Cloudflare Worker, runtime validators, provider adapters, tests, JSON Schema и GitHub Pages workflow.</p>
+</body>
+</html>
