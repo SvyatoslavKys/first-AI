@@ -1,5 +1,6 @@
 import {
   ProviderError,
+  providerAdapters,
   type ProviderAdapter,
   type ProviderId
 } from "../src/providers";
@@ -179,6 +180,28 @@ await runTest("reaches mock when external provider keys are missing", async () =
     ["skipped", "skipped", "success"],
     "Unconfigured providers must be skipped"
   );
+});
+
+await runTest("calls the Workers AI binding with its receiver intact", async () => {
+  const fakeAi = {
+    marker: "bound",
+    async run(this: { marker: string }, _model: string, _payload: unknown) {
+      assert(this.marker === "bound", "Workers AI must receive its binding as this");
+      return { response: "Workers AI response" };
+    }
+  };
+  const env = {
+    ...createEnv("workers-ai:test-model"),
+    AI: fakeAi as unknown as Ai
+  };
+  const result = await providerAdapters["workers-ai"].generate(
+    input,
+    "test-model",
+    env,
+    new AbortController().signal
+  );
+
+  assert(result.content === "Workers AI response", "Workers AI response must be returned");
 });
 
 await runTest("accepts strict project data and builds dynamic agent context", () => {

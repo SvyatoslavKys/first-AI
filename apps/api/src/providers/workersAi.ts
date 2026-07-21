@@ -26,7 +26,7 @@ export const workersAiProvider: ProviderAdapter = {
     }
 
     try {
-      const run = env.AI.run as unknown as (
+      const run = env.AI.run.bind(env.AI) as unknown as (
         modelName: string,
         payload: unknown
       ) => Promise<WorkersAiResponse>;

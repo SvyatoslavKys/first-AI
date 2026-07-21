@@ -10,7 +10,9 @@
     "build": "tsc --noEmit",
     "check": "tsc --noEmit",
     "test": "node test/run.mjs",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "secret:groq": "wrangler secret put GROQ_API_KEY",
+    "secret:gemini": "wrangler secret put GEMINI_API_KEY"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250705.0",

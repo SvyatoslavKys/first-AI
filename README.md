@@ -149,11 +149,13 @@ GitHub Pages must use `Settings → Pages → Build and deployment → Source: G
 https://svyatoslavkys.github.io/first-AI/
 ```
 
-Without an API URL, the deployed demo uses its local demo transport and does not call an external model. To connect a deployed Worker later, create a GitHub repository variable named `VITE_ASSISTANT_API_URL` with the Worker base URL, without `/chat`:
+The workflow uses the deployed public demo Worker by default:
 
 ```text
-https://first-ai-api.example.workers.dev
+https://first-ai-api.svyat-first-ai.workers.dev
 ```
+
+To replace it, create a GitHub repository variable named `VITE_ASSISTANT_API_URL` with another Worker base URL, without `/chat`. If no API URL is supplied during a separate local build, the demo uses its local transport and does not call an external model.
 
 The Worker must then allow the GitHub Pages origin. `Origin` contains the domain but not the `/first-AI/` path:
 
@@ -164,6 +166,8 @@ The Worker must then allow the GitHub Pages origin. `Origin` contains the domain
 ```
 
 Do not add Groq or Gemini keys to GitHub Pages variables. Provider keys remain Cloudflare Worker secrets.
+
+Consumers who want to use their own provider account and quota should deploy their own Worker and store their key there. Follow [docs/BYOK.md](docs/BYOK.md). A provider key is never a React prop; the public component receives only the consumer's Worker `apiUrl`.
 
 ## Connecting AI providers
 
@@ -196,14 +200,13 @@ groq:openai/gpt-oss-120b
 → groq:openai/gpt-oss-20b
 → gemini:gemini-3.5-flash
 → workers-ai:@cf/zai-org/glm-4.7-flash
-→ mock:local
 ```
 
 The router moves to the next route when a key is missing, a rate limit is reached, a request times out, a provider is temporarily unavailable, or a provider returns an empty response. After a `429` response, the route enters a temporary cooldown so subsequent requests do not immediately repeat a call that is known to be unavailable. Request validation errors such as `400` are not hidden by switching to another model.
 
 The same system prompt and the latest 16 messages are passed to every provider in the chain, allowing the conversation to continue with the existing context. The history is currently stored by the React component and sent with every request; persistent server-side conversation storage has not been implemented yet.
 
-`mock:local` is useful during development because the backend can respond without any provider keys. In production, it can be removed from `AI_ROUTES` so a complete provider outage returns a proper `502` response.
+`mock:local` is enabled only by `apps/api/wrangler.local.jsonc` for local development. It is excluded from the production route list, so a complete provider outage returns a proper `502` response instead of a demo message.
 
 ## Using the React component in another project
 
