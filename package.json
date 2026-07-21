@@ -14,6 +14,7 @@
     "build:widget": "npm run build --workspace @first-ai/assistant-react",
     "build:api": "npm run build --workspace @first-ai/api",
     "build:demo": "npm run build --workspace @first-ai/demo",
+    "build:pages": "npm run build:widget && npm run build:pages --workspace @first-ai/demo",
     "build": "npm run build:widget && npm run build:api && npm run build:demo",
     "check": "npm run check --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

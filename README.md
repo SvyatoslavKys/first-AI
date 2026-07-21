@@ -139,6 +139,32 @@ The local endpoint is available at `http://localhost:8787/chat`. The `dev:api:mo
 
 To test Workers AI locally as well, use `npm run dev:api`. This command reads the main `wrangler.jsonc`, connects the remote `AI` binding, and requires Cloudflare authentication.
 
+## Deploying the demo to GitHub Pages
+
+The repository includes [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml). On every push to `main`, the workflow installs dependencies, checks TypeScript, runs the API tests, builds the React library, builds the demo with the `/first-AI/` base path, uploads only `apps/demo/dist`, and deploys that artifact to GitHub Pages.
+
+GitHub Pages must use `Settings → Pages → Build and deployment → Source: GitHub Actions`. The expected demo URL for this repository is:
+
+```text
+https://svyatoslavkys.github.io/first-AI/
+```
+
+Without an API URL, the deployed demo uses its local demo transport and does not call an external model. To connect a deployed Worker later, create a GitHub repository variable named `VITE_ASSISTANT_API_URL` with the Worker base URL, without `/chat`:
+
+```text
+https://first-ai-api.example.workers.dev
+```
+
+The Worker must then allow the GitHub Pages origin. `Origin` contains the domain but not the `/first-AI/` path:
+
+```json
+{
+  "ALLOWED_ORIGINS": "https://svyatoslavkys.github.io"
+}
+```
+
+Do not add Groq or Gemini keys to GitHub Pages variables. Provider keys remain Cloudflare Worker secrets.
+
 ## Connecting AI providers
 
 For local development, copy the secrets example and add one or both provider keys:
